@@ -6,6 +6,7 @@ headers = { "Authorization": "Bearer T7wAi-o3litnY4WQemF3kjpsXBWbXHXTNgSgzJev8dv
 
 song_title = "Runaway"
 artist_name = "Kanye West"
+artist_id = "72"
 
 def lyrics_from_song_api_path(song_api_path):
 	song_url = base_url + song_api_path
@@ -24,15 +25,32 @@ def lyrics_from_song_api_path(song_api_path):
 	return lyrics
 
 if __name__ == "__main__":
-	search_url = base_url + "/search"
-	params = {'q': song_title}
-	response = requests.get(search_url, params=params, headers=headers)
-	json = response.json()
-	song_info = None
-	for hit in json["response"]["hits"]:
-		if hit["result"]["primary_artist"]["name"] == artist_name:
-			song_info = hit
-		if song_info:
-			song_api_path = song_info["result"]["api_path"]
-			print lyrics_from_song_api_path(song_api_path)
-			break
+	file = open('kanye', 'a')
+
+	# Get 50 songs at a time for a given artist ID
+	search_url = base_url + "/artists/" + artist_id + "/songs"
+	page = 1
+	keep_going = True
+
+	print "Scraping lyrics for " + artist_name + ", 50 songs at a time"
+
+	while keep_going:
+		print "Page: " + page 
+		params = {'per_page': 50, 'page': page, 'sort': 'popularity'}
+
+		response = requests.get(search_url, params=params, headers=headers)
+		json = response.json()
+
+		song_info = None
+		for song in json["response"]["songs"]:
+			if artist_name in song["primary_artist"]["name"]:
+				song_info = song
+			if song_info:
+				song_api_path = song_info["api_path"]
+				file.write(lyrics_from_song_api_path(song_api_path).encode('utf-8'))
+				song_info = None
+
+		page += 1
+
+		if json["response"]["next_page"] is None:
+			keep_going = False
