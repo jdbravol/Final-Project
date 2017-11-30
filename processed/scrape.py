@@ -4,9 +4,8 @@ from bs4 import BeautifulSoup
 base_url = "http://api.genius.com"
 headers = { "Authorization": "Bearer T7wAi-o3litnY4WQemF3kjpsXBWbXHXTNgSgzJev8dvXRXOIMsXytIF1OsI679G5" }
 
-song_title = "Ms. Jackson"
-artist_name = "OutKast"
-artist_id = "105"
+artist_name = "Cardi B"
+artist_id = "621678"
 
 def lyrics_from_song_api_path(song_api_path):
 	song_url = base_url + song_api_path
@@ -25,7 +24,7 @@ def lyrics_from_song_api_path(song_api_path):
 	return lyrics
 
 if __name__ == "__main__":
-	file = open('outkast', 'a')
+	file = open('cardi_b', 'a')
 
 	# Get 50 songs at a time for a given artist ID
 	search_url = base_url + "/artists/" + artist_id + "/songs"
