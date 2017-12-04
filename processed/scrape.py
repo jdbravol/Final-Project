@@ -8,6 +8,7 @@ song_title = "Juicy"
 artist_name = "Notorious B.I.G."
 artist_id = "22"
 
+
 def lyrics_from_song_api_path(song_api_path):
 	song_url = base_url + song_api_path
 	response = requests.get(song_url, headers=headers)
