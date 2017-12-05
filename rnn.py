@@ -64,7 +64,7 @@ if args['mode'] == 'train' or WEIGHTS == '':
       model.save_weights('checkpoint_layer_{}_hidden_{}_epoch_{}.hdf5'.format(LAYER_NUM, HIDDEN_DIM, nb_epoch))
 
 # Else, loading the trained weights and performing generation only
-elif WEIGHTS == '':
+elif not WEIGHTS == '':
   # Loading the trained weights
   model.load_weights(WEIGHTS)
   generate_text(model, GENERATE_LENGTH, VOCAB_SIZE, ix_to_char)

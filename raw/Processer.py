@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from langdetect import detect
+import os
 
-file_name = "young_thug"
-
+path = "C:/Users/Max/Final-Project"
+file_name = "kanye"
 
 def process():
-    with open("../raw/"+file_name, "r") as input:
-        with open("../processed/" + file_name, "wb") as output:
+    with open(os.path.join(path, "raw/" + file_name), "r") as input:
+        with open(os.path.join(path, "processed/" + file_name), "wb") as output:
             lines = input.readlines()
+            lines_seen = set()
             for line in lines:
                 if "\n" == line:
-                    output.write(line)
-                elif "[" in line:
+                    continue
+                elif "[" in line or "]" in line or "{" in line or "}" in line:
                     continue
                 elif "@" in line:
                     continue
@@ -28,7 +30,7 @@ def process():
                     continue
                 elif "RCA Records" in line or "Keyboards by" in line or "Programming by" in line:
                     continue
-                elif "Assisted at" in line or "Management by" in line :
+                elif "Assisted at" in line or "Management by" in line or "Directed by" in line:
                     continue
                 elif "Produced by" in line or "Arrangement by" in line or "Production by" in line:
                     continue
@@ -64,6 +66,10 @@ def process():
                     continue
                 elif "6." in line or "7." in line or "8." in line or "9." in line or "0." in line:
                     continue
+                elif "11." in line or "12." in line or "13." in line or "14." in line or "15." in line:
+                    continue
+                elif "16." in line or "17." in line or "18." in line or "19." in line or "20." in line:
+                    continue
                 elif len(line) < 5:
                     continue
                 elif len(line) > 150:
@@ -71,7 +77,9 @@ def process():
                 #elif not detect(line) == 'en':
                     #continue
                 else:
-                    output.write(line)
+                    if line not in lines_seen:
+                        output.write(line.encode("utf-8"))
+                        lines_seen.add(line)
         output.close()
     input.close()
 

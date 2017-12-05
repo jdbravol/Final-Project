@@ -17,7 +17,7 @@ def generate_text(model, length, vocab_size, ix_to_char):
 
 # method for preparing the training data
 def load_data(data_dir, seq_length):
-	data = open(data_dir, 'r').read()
+	data = open(data_dir, 'r', encoding='utf-8').read()
 	chars = list(set(data))
 	VOCAB_SIZE = len(chars)
 
@@ -27,8 +27,8 @@ def load_data(data_dir, seq_length):
 	ix_to_char = {ix:char for ix, char in enumerate(chars)}
 	char_to_ix = {char:ix for ix, char in enumerate(chars)}
 
-	X = np.zeros(int(len(data) / seq_length), seq_length, VOCAB_SIZE)
-	y = np.zeros(int(len(data) / seq_length), seq_length, VOCAB_SIZE)
+	X = np.zeros((int(len(data) / seq_length), seq_length, VOCAB_SIZE))
+	y = np.zeros((int(len(data) / seq_length), seq_length, VOCAB_SIZE))
 	for i in range(0, int(len(data) / seq_length)):
 		X_sequence = data[i*seq_length:(i+1)*seq_length]
 		X_sequence_ix = [char_to_ix[value] for value in X_sequence]
