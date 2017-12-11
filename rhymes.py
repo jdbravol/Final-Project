@@ -9,11 +9,11 @@ from keras.models import Sequential
 from keras.layers import LSTM 
 from keras.layers.core import Dense
 
-depth = 6 # depth of the network. changing will require a retrain
-maxsyllables = 16 # maximum syllables per line. Change this freely without retraining the network
+depth = 6 
+maxsyllables = 16 
 train_mode = False
-artist = "kanye_west" # used when saving the trained model
-rap_file = "neural_rap.txt" # where the rap is written to
+artist = "all_artists" 
+rap_file = "results.txt"
 
 def create_network(depth):
 	model = Sequential()
@@ -60,11 +60,9 @@ def syllables(line):
 
 def rhymeindex(lyrics):
 	if str(artist) + ".rhymes" in os.listdir(".") and train_mode == False:
-		print "loading saved rhymes from " + str(artist) + ".rhymes"
 		return open(str(artist) + ".rhymes", "r").read().split("\n")
 	else:
 		rhyme_master_list = []
-		print "Alright, building the list of all the rhymes"
 		for i in lyrics:
 			word = re.sub(r"\W+", '', i.split(" ")[-1]).lower()
 			rhymeslist = pronouncing.rhymes(word)
@@ -87,6 +85,7 @@ def rhymeindex(lyrics):
 		f = open(str(artist) + ".rhymes", "w")
 		f.write("\n".join(rhymelist))
 		f.close()
+		
 		print rhymelist
 		return rhymelist
 
@@ -95,6 +94,7 @@ def rhyme(line, rhyme_list):
 	rhymeslist = pronouncing.rhymes(word)
 	rhymeslist = [x.encode('UTF8') for x in rhymeslist]
 	rhymeslistends = []
+
 	for i in rhymeslist:
 		rhymeslistends.append(i[-2:])
 	try:
@@ -195,9 +195,7 @@ def compose_rap(lines, rhyme_list, lyrics_file, model):
 	return rap_vectors
 	
 def vectors_into_song(vectors, generated_lyrics, rhyme_list):
-	print "\n\n"	
-	print "About to write rap (this could take a moment)..."
-	print "\n\n"
+
 	def last_word_compare(rap, line2):
 		penalty = 0 
 		for line1 in rap:
@@ -244,10 +242,6 @@ def vectors_into_song(vectors, generated_lyrics, rhyme_list):
 		vector_halves.append(list(vector[0][0])) 
 		vector_halves.append(list(vector[0][1]))
 		
-
-	
-
-		
 	for vector in vector_halves:
 		scorelist = []
 		for item in dataset:
@@ -280,13 +274,13 @@ def vectors_into_song(vectors, generated_lyrics, rhyme_list):
 def train(x_data, y_data, model):
 	model.fit(np.array(x_data), np.array(y_data),
 			  batch_size=20,
-			  epochs=50,
+			  epochs=5,
 			  verbose=1)
 	model.save_weights(artist + ".rap")
 			  
 def main(depth, train_mode):
 	model = create_network(depth)
-	text_file = "processed/kanye"
+	text_file = "processed/all_artists"
 	text_model = markov(text_file)
 	
 	if train_mode == True:
