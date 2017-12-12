@@ -1,71 +1,57 @@
 from __future__ import print_function
+from utils import *
 import matplotlib.pyplot as plt
 import numpy as np
 import time
 import pronouncing
 import csv
 from keras.models import Sequential
+from keras.layers.wrappers import TimeDistributed
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM, SimpleRNN
-from keras.layers.wrappers import TimeDistributed
 import argparse
-from utils import *
 
-# Parsing arguments for Network definition
-ap = argparse.ArgumentParser()
-ap.add_argument('-data_dir', default='processed/kanye')
-ap.add_argument('-batch_size', type=int, default=35)
-ap.add_argument('-layer_num', type=int, default=2)
-ap.add_argument('-seq_length', type=int, default=50)
-ap.add_argument('-hidden_dim', type=int, default=500)
-ap.add_argument('-generate_length', type=int, default=500)
-ap.add_argument('-nb_epoch', type=int, default=20)
-ap.add_argument('-mode', default='train')
-ap.add_argument('-weights', default='')
-args = vars(ap.parse_args())
+data_files = './all_artists'
+batch = 50
+hidden = 500
+sequence = 50
+pre_weights = ''
+gen_length = 500
+layers = 2
 
-DATA_DIR = args['data_dir']
-BATCH_SIZE = args['batch_size']
-HIDDEN_DIM = args['hidden_dim']
-SEQ_LENGTH = args['seq_length']
-WEIGHTS = args['weights']
+# generate data
+X, y, VOCAB_SIZE, ix_to_char = load_data(data_files, sequence)
 
-GENERATE_LENGTH = args['generate_length']
-LAYER_NUM = args['layer_num']
-
-# Creating training data
-X, y, VOCAB_SIZE, ix_to_char = load_data(DATA_DIR, SEQ_LENGTH)
-
-# Creating and compiling the Network
+# build model
 model = Sequential()
-model.add(LSTM(HIDDEN_DIM, input_shape=(None, VOCAB_SIZE), return_sequences=True))
-for i in range(LAYER_NUM - 1):
-  model.add(LSTM(HIDDEN_DIM, return_sequences=True))
+model.add(LSTM(hidden, input_shape=(None, VOCAB_SIZE), return_sequences=True))
+for i in range(layers - 1):
+  model.add(LSTM(hidden, return_sequences=True))
+
 model.add(TimeDistributed(Dense(VOCAB_SIZE)))
 model.add(Activation('softmax'))
+
 model.compile(loss="categorical_crossentropy", optimizer="rmsprop")
 
-if not WEIGHTS == '':
-  model.load_weights(str(WEIGHTS))
-  nb_epoch = int(WEIGHTS[WEIGHTS.rfind('_') + 1:WEIGHTS.find('.')])
+# load old weights
+if not pre_weights == '':
+  model.load_weights(pre_weights)
+  nb_epoch = int(pre_weights[pre_weights.rfind('_') + 1:pre_weights.find('.')])
 else:
   nb_epoch = 0
 
-# Training if there is no trained weights specified
-if args['mode'] == 'train' or WEIGHTS == '':
+# train if there's no old weights 
+if pre_weights == '':
   while True:
-    print('\n\nEpoch: {}\n'.format(nb_epoch))
-    model.fit(X, y, batch_size=BATCH_SIZE, verbose=1, nb_epoch=1)
+    print('\nEpoch: '+ str(nb_epoch) + '\n')
+    model.fit(X, y, batch=batch, verbose=1, nb_epoch=1)
     nb_epoch += 1
-    generate_text(model, GENERATE_LENGTH, VOCAB_SIZE, ix_to_char)
+    generate_text(model, gen_length, VOCAB_SIZE, ix_to_char)
     if nb_epoch % 10 == 0:
-      model.save_weights('epoch_{}.hdf5'.format(nb_epoch))
-
-# Else, loading the trained weights and performing generation only
-elif not WEIGHTS == '':
-  # Loading the trained weights
-  model.load_weights(WEIGHTS)
-  generate_text(model, GENERATE_LENGTH, VOCAB_SIZE, ix_to_char)
-  print('\n\n')
+      model.save_pre_weights('checkpoint_layer_{}_hidden_{}_epoch_{}.hdf5'.format(layers,hidden, nb_epoch))
+      
+# generate with loaded weights 
 else:
-  print('\n\nNothing to do!')
+  model.load_weights(pre_weights)
+  generate_text(model, gen_length, VOCAB_SIZE, ix_to_char)
+  print('\n\n')
