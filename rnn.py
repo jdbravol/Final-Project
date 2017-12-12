@@ -2,6 +2,7 @@ from __future__ import print_function
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import pronouncing
 import csv
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
@@ -12,8 +13,8 @@ from utils import *
 
 # Parsing arguments for Network definition
 ap = argparse.ArgumentParser()
-ap.add_argument('-data_dir', default='./all_artists')
-ap.add_argument('-batch_size', type=int, default=50)
+ap.add_argument('-data_dir', default='processed/kanye')
+ap.add_argument('-batch_size', type=int, default=35)
 ap.add_argument('-layer_num', type=int, default=2)
 ap.add_argument('-seq_length', type=int, default=50)
 ap.add_argument('-hidden_dim', type=int, default=500)
@@ -44,11 +45,8 @@ model.add(TimeDistributed(Dense(VOCAB_SIZE)))
 model.add(Activation('softmax'))
 model.compile(loss="categorical_crossentropy", optimizer="rmsprop")
 
-# Generate some sample before training to know how bad it is!
-generate_text(model, args['generate_length'], VOCAB_SIZE, ix_to_char)
-
 if not WEIGHTS == '':
-  model.load_weights(WEIGHTS)
+  model.load_weights(str(WEIGHTS))
   nb_epoch = int(WEIGHTS[WEIGHTS.rfind('_') + 1:WEIGHTS.find('.')])
 else:
   nb_epoch = 0
@@ -61,7 +59,7 @@ if args['mode'] == 'train' or WEIGHTS == '':
     nb_epoch += 1
     generate_text(model, GENERATE_LENGTH, VOCAB_SIZE, ix_to_char)
     if nb_epoch % 10 == 0:
-      model.save_weights('checkpoint_layer_{}_hidden_{}_epoch_{}.hdf5'.format(LAYER_NUM, HIDDEN_DIM, nb_epoch))
+      model.save_weights('epoch_{}.hdf5'.format(nb_epoch))
 
 # Else, loading the trained weights and performing generation only
 elif not WEIGHTS == '':

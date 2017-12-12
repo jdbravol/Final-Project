@@ -1,19 +1,45 @@
 from __future__ import print_function
 import numpy as np
+import pronouncing
 
 # method for generating text
 def generate_text(model, length, vocab_size, ix_to_char):
-	# starting with random character
-	ix = [np.random.randint(vocab_size)]
-	y_char = [ix_to_char[ix[-1]]]
-	X = np.zeros((1, length, vocab_size))
-	for i in range(length):
-		# appending the last predicted character to sequence
-		X[0, i, :][ix[-1]] = 1
-		print(ix_to_char[ix[-1]], end="")
-		ix = np.argmax(model.predict(X[:, :i+1, :])[0], 1)
-		y_char.append(ix_to_char[ix[-1]])
-	return ('').join(y_char)
+	result = ''
+	lastwords = []
+	for i in range(4):
+		rhyme = False
+
+		while not rhyme:
+			# starting with random character
+			ix = [np.random.randint(vocab_size)]
+			y_char = [ix_to_char[ix[-1]]]
+
+			X = np.zeros((1, length, vocab_size))
+
+			for j in range(100):
+				# appending the last predicted character to sequence
+				X[0, j, :][ix[-1]] = 1
+				print(ix_to_char[ix[-1]], end="")
+				ix = np.argmax(model.predict(X[:, :j+1, :])[0], 1)
+				y_char.append(ix_to_char[ix[-1]])
+
+				if ix_to_char[ix[-1]] == '\n':
+					y_char.append('\n')
+					break
+			
+			line = ('').join(y_char)
+			lastword = line.rsplit(None, 1)[-1]
+
+			if i == 0:
+				lastwords.append(lastword)
+				rhyme = True
+			else:
+				rhymes = pronouncing.rhymes(lastwords[i - 1])
+				if lastword in rhymes:
+					rhyme = True
+
+		result += line + '\n'
+	return result
 
 # method for preparing the training data
 def load_data(data_dir, seq_length):
